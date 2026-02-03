@@ -1,22 +1,21 @@
-// Global variables
+// Используем transformers.js напрямую через CDN
+import { pipeline } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm";
+
 let reviews = [];
 let sentimentPipeline = null;
 
-// DOM elements
 const analyzeBtn = document.getElementById("analyze-btn");
 const reviewText = document.getElementById("review-text");
 const sentimentResult = document.getElementById("sentiment-result");
-const loadingEl = document.getElementById("loading");
-const errorEl = document.getElementById("error-message");
+const loadingElement = document.querySelector(".loading");
+const errorElement = document.getElementById("error-message");
 
-// Initialize
 document.addEventListener("DOMContentLoaded", () => {
   loadReviews();
   initModel();
   analyzeBtn.addEventListener("click", analyzeRandomReview);
 });
 
-// Load reviews
 function loadReviews() {
   fetch("reviews_test.tsv")
     .then(response => {
@@ -37,28 +36,26 @@ function loadReviews() {
     .catch(err => showError("Could not load reviews"));
 }
 
-// Initialize AI model
 async function initModel() {
   try {
-    const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm');
     sentimentPipeline = await pipeline('sentiment-analysis');
-    loadingEl.style.display = "none";
   } catch (e) {
     showError("AI model failed to load. Check internet.");
   }
 }
 
-// Analyze review
 async function analyzeRandomReview() {
+  hideError();
   if (!reviews.length) return showError("No reviews loaded");
-  if (!sentimentPipeline) return showError("AI is still loading...");
+  if (!sentimentPipeline) return showError("AI is loading...");
 
   const review = reviews[Math.floor(Math.random() * reviews.length)];
   reviewText.textContent = `"${review}"`;
   reviewText.style.display = "block";
-  sentimentResult.style.display = "none";
+  
+  loadingElement.style.display = "block";
   analyzeBtn.disabled = true;
-  hideError();
+  sentimentResult.style.display = "none";
 
   try {
     const result = await sentimentPipeline(review);
@@ -80,18 +77,27 @@ async function analyzeRandomReview() {
       ${label} (${(score * 100).toFixed(1)}%)
     `;
     sentimentResult.style.display = "block";
+
+    // ➤➤➤ ЛОГИРОВАНИЕ В GOOGLE SHEETS
+    const gasUrl = "https://script.google.com/macros/s/AKfycbze8hqx5FV5LdXgDwULK8dQR3uGaCbdcIWZJw9nbo9UsPOrea1_egbdloBXXwhouXZm/exec";
+    const params = new URLSearchParams();
+    params.append('review', review);
+    params.append('sentiment', label);
+    params.append('confidence', score.toString());
+    fetch(gasUrl, { method: 'POST', body: params }).catch(() => {});
+    
   } catch (e) {
     showError("Analysis failed");
   } finally {
+    loadingElement.style.display = "none";
     analyzeBtn.disabled = false;
   }
 }
 
-// Helpers
 function showError(msg) {
-  errorEl.textContent = msg;
-  errorEl.style.display = "block";
+  errorElement.textContent = msg;
+  errorElement.style.display = "block";
 }
 function hideError() {
-  errorEl.style.display = "none";
+  errorElement.style.display = "none";
 }
