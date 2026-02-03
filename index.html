@@ -1,136 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>💖 Review Mood Checker</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <meta charset="utf-8">
+  <title>Review Mood Checker</title>
   <style>
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: linear-gradient(135deg, #ffebf0, #ffd6e7);
-      margin: 0;
+      background: #ffe6f0;
+      font-family: sans-serif;
       padding: 20px;
-      min-height: 100vh;
-      position: relative;
-      overflow-x: hidden;
     }
-    body::before {
-      content: "❤️ 💕 💖";
-      position: absolute;
-      top: 20%;
-      left: 5%;
-      font-size: 24px;
-      opacity: 0.15;
-      z-index: 0;
-      transform: rotate(-15deg);
-    }
-    body::after {
-      content: "💗 ❤️‍🔥 💓";
-      position: absolute;
-      bottom: 15%;
-      right: 8%;
-      font-size: 28px;
-      opacity: 0.12;
-      z-index: 0;
-      transform: rotate(12deg);
-    }
-    .container {
-      max-width: 700px;
-      margin: 20px auto;
-      padding: 25px;
+    .box {
       background: white;
-      border-radius: 20px;
-      box-shadow: 0 8px 24px rgba(255, 105, 180, 0.2);
-      position: relative;
-      z-index: 1;
-      border: 2px solid #ffccd5;
-    }
-    h1 {
-      text-align: center;
-      color: #d81b60;
-      margin-bottom: 10px;
-      font-size: 2.2rem;
-    }
-    label {
-      display: block;
-      margin: 16px 0 6px;
-      color: #c2185b;
-      font-weight: 600;
-    }
-    input[type="url"] {
-      width: 100%;
-      padding: 10px;
-      border: 2px solid #ffb6c1;
-      border-radius: 10px;
-      box-sizing: border-box;
-      margin-bottom: 10px;
-    }
-    button {
-      background: linear-gradient(to right, #ec407a, #d81b60);
-      color: white;
-      border: none;
-      padding: 14px;
-      font-size: 18px;
-      border-radius: 14px;
-      cursor: pointer;
-      margin: 12px 0;
-      width: 100%;
-      font-weight: 600;
-    }
-    .review-box {
-      background: #fff0f5;
       padding: 20px;
-      border-radius: 16px;
-      margin: 20px 0;
-      font-style: italic;
-      color: #880e4f;
-      border-left: 4px solid #f48fb1;
-      word-break: break-word;
-      display: none;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: 0 auto;
     }
-    .sentiment-result {
-      text-align: center;
-      font-size: 22px;
-      margin: 20px 0;
-      padding: 16px;
-      border-radius: 14px;
-      display: none;
-      background: #fdf2f8;
-      border: 2px dashed #f8bbd0;
-    }
-    .status {
+    input, button {
+      width: 100%;
       padding: 10px;
-      border-radius: 8px;
-      margin-top: 12px;
-      text-align: center;
-      display: none;
+      margin: 10px 0;
+      box-sizing: border-box;
     }
-    .success { background: #e8f5e9; color: #2e7d32; }
-    .error { background: #ffebee; color: #c62828; }
-    .loading {
-      text-align: center;
-      color: #d81b60;
-      font-style: italic;
+    #review, #result {
+      padding: 15px;
+      background: #fff0f5;
       margin: 15px 0;
+      border-radius: 8px;
       display: none;
     }
+    .heart::before { content: "❤️ "; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>💖 Review Mood Checker</h1>
-
-    <label for="gas-url">Google Apps Script Logger URL:</label>
-    <input type="url" id="gas-url" placeholder="https://script.google.com/macros/s/.../exec">
-    <button id="save-gas">Save Logger URL</button>
-
-    <button id="analyze-btn">🌸 Check a Random Review's Mood</button>
-    <div class="loading" id="loading">Warming up AI heart... ❤️</div>
-
-    <div class="review-box" id="review-text"></div>
-    <div class="sentiment-result" id="sentiment-result"></div>
-    <div class="status" id="status"></div>
+  <div class="box">
+    <h1 class="heart">Review Mood Checker</h1>
+    
+    <input type="url" id="gasUrl" placeholder="Paste your Google Apps Script URL ending with /exec">
+    <button onclick="saveUrl()">Save Logger URL</button>
+    
+    <button onclick="analyze()">Check Random Review</button>
+    
+    <div id="review"></div>
+    <div id="result"></div>
+    <div id="status"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
