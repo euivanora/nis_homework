@@ -1,61 +1,72 @@
-// Используем transformers.js напрямую через CDN
+// Используем transformers.js напрямую (локальная модель, без Hugging Face API)
 import { pipeline } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm";
 
 let reviews = [];
 let sentimentPipeline = null;
+let gasUrl = localStorage.getItem('gas_url') || '';
 
 const analyzeBtn = document.getElementById("analyze-btn");
 const reviewText = document.getElementById("review-text");
 const sentimentResult = document.getElementById("sentiment-result");
-const loadingElement = document.querySelector(".loading");
-const errorElement = document.getElementById("error-message");
+const loadingEl = document.getElementById("loading");
+const statusEl = document.getElementById("status");
+const gasUrlInput = document.getElementById("gas-url");
+const saveGasBtn = document.getElementById("save-gas");
 
 document.addEventListener("DOMContentLoaded", () => {
+  if (gasUrl) gasUrlInput.value = gasUrl;
+  
+  saveGasBtn.onclick = () => {
+    const url = gasUrlInput.value.trim();
+    if (url && url.endsWith('/exec')) {
+      localStorage.setItem('gas_url', url);
+      gasUrl = url;
+      showStatus('Logger URL saved! ❤️', 'success');
+    } else {
+      showStatus('URL must end with /exec ❌', 'error');
+    }
+  };
+
   loadReviews();
   initModel();
-  analyzeBtn.addEventListener("click", analyzeRandomReview);
+  analyzeBtn.onclick = analyzeRandomReview;
 });
 
 function loadReviews() {
   fetch("reviews_test.tsv")
-    .then(response => {
-      if (!response.ok) throw new Error("File not found");
-      return response.text();
-    })
+    .then(r => r.ok ? r.text() : Promise.reject())
     .then(tsv => {
       Papa.parse(tsv, {
         header: true,
         delimiter: "\t",
-        complete: results => {
-          reviews = results.data
-            .map(row => row.text)
-            .filter(text => typeof text === "string" && text.trim() !== "");
+        complete: r => {
+          reviews = r.data.map(row => row.text).filter(t => t?.trim());
         }
       });
     })
-    .catch(err => showError("Could not load reviews"));
+    .catch(() => console.warn("TSV load failed"));
 }
 
 async function initModel() {
   try {
     sentimentPipeline = await pipeline('sentiment-analysis');
+    loadingEl.style.display = "none";
   } catch (e) {
-    showError("AI model failed to load. Check internet.");
+    loadingEl.textContent = "AI heart is tired 😢";
+    loadingEl.style.color = "#c62828";
   }
 }
 
 async function analyzeRandomReview() {
-  hideError();
-  if (!reviews.length) return showError("No reviews loaded");
-  if (!sentimentPipeline) return showError("AI is loading...");
+  hideStatus();
+  if (!reviews.length) return showStatus("No reviews loaded ❌", "error");
+  if (!sentimentPipeline) return showStatus("AI is loading... wait ❤️", "error");
 
   const review = reviews[Math.floor(Math.random() * reviews.length)];
   reviewText.textContent = `"${review}"`;
   reviewText.style.display = "block";
-  
-  loadingElement.style.display = "block";
-  analyzeBtn.disabled = true;
   sentimentResult.style.display = "none";
+  analyzeBtn.disabled = true;
 
   try {
     const result = await sentimentPipeline(review);
@@ -72,32 +83,32 @@ async function analyzeRandomReview() {
       color = "#c62828";
     }
 
-    sentimentResult.innerHTML = `
-      <i class="fas ${icon}" style="color:${color}; margin-right:8px;"></i>
-      ${label} (${(score * 100).toFixed(1)}%)
-    `;
+    sentimentResult.innerHTML = `<i class="fas ${icon}" style="color:${color}; margin-right:10px;"></i> ${label} (${(score*100).toFixed(1)}%)`;
     sentimentResult.style.display = "block";
 
     // ➤➤➤ ЛОГИРОВАНИЕ В GOOGLE SHEETS
-    const gasUrl = "https://script.google.com/macros/s/AKfycbze8hqx5FV5LdXgDwULK8dQR3uGaCbdcIWZJw9nbo9UsPOrea1_egbdloBXXwhouXZm/exec";
-    const params = new URLSearchParams();
-    params.append('review', review);
-    params.append('sentiment', label);
-    params.append('confidence', score.toString());
-    fetch(gasUrl, { method: 'POST', body: params }).catch(() => {});
-    
+    if (gasUrl) {
+      const params = new URLSearchParams();
+      params.append('review', review);
+      params.append('sentiment', label);
+      params.append('confidence', score.toString());
+      fetch(gasUrl, { method: 'POST', body: params }).catch(() => {});
+    }
+
+    showStatus('Mood checked! Logged to Sheets ❤️', 'success');
   } catch (e) {
-    showError("Analysis failed");
+    showStatus("Analysis failed ❌", "error");
   } finally {
-    loadingElement.style.display = "none";
     analyzeBtn.disabled = false;
   }
 }
 
-function showError(msg) {
-  errorElement.textContent = msg;
-  errorElement.style.display = "block";
+function showStatus(msg, type) {
+  statusEl.textContent = msg;
+  statusEl.className = `status ${type}`;
+  statusEl.style.display = "block";
+  setTimeout(() => statusEl.style.display = "none", 4000);
 }
-function hideError() {
-  errorElement.style.display = "none";
+function hideStatus() {
+  statusEl.style.display = "none";
 }
