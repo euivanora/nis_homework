@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>💖 Review Mood Checker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #ffebf0, #ffd6e7);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Сердечки на фон */
+    body::before {
+      content: "❤️ 💕 💖";
+      position: absolute;
+      top: 20%;
+      left: 5%;
+      font-size: 24px;
+      opacity: 0.15;
+      z-index: 0;
+      transform: rotate(-15deg);
+    }
+    body::after {
+      content: "💗 ❤️‍🔥 💓";
+      position: absolute;
+      bottom: 15%;
+      right: 8%;
+      font-size: 28px;
+      opacity: 0.12;
+      z-index: 0;
+      transform: rotate(12deg);
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(255, 105, 180, 0.2);
+      position: relative;
+      z-index: 1;
+      border: 2px solid #ffccd5;
+    }
+
+    h1 {
+      text-align: center;
+      color: #d81b60;
+      margin-bottom: 10px;
+      font-size: 2.2rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #e91e63;
+      margin-bottom: 25px;
+      font-weight: 500;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-weight: 600;
+      color: #c2185b;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ffb6c1;
+      border-radius: 12px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background-color: #fff9fb;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #f06292;
+      background-color: #fff;
+    }
+
+    button {
+      background: linear-gradient(to right, #ec407a, #d81b60);
+      color: white;
+      border: none;
+      padding: 14px;
+      font-size: 18px;
+      border-radius: 14px;
+      cursor: pointer;
+      margin: 16px 0 24px;
+      width: 100%;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(236, 64, 122, 0.4);
+    }
+
+    button:disabled {
+      background: #f8bbd0;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .review-box {
+      background: #fff0f5;
+      padding: 20px;
+      border-radius: 16px;
+      margin: 20px 0;
+      font-style: italic;
+      color: #880e4f;
+      border-left: 4px solid #f48fb1;
+      word-break: break-word;
+      display: none;
+    }
+
+    .sentiment-result {
+      text-align: center;
+      font-size: 22px;
+      margin: 20px 0;
+      padding: 16px;
+      border-radius: 14px;
+      display: none;
+      background: #fdf2f8;
+      border: 2px dashed #f8bbd0;
+    }
+
+    .sentiment-result i {
+      margin-right: 10px;
+      font-size: 24px;
+    }
+
+    .positive { color: #2e7d32; }
+    .negative { color: #c62828; }
+    .neutral { color: #5d4037; }
+
+    .error-message {
+      color: #c62828;
+      background: #ffebee;
+      padding: 14px;
+      border-radius: 12px;
+      margin-top: 16px;
+      display: none;
+      border: 1px solid #ffcdd2;
+    }
+
+    .loading {
+      text-align: center;
+      color: #d81b60;
+      font-style: italic;
+      display: none;
+      margin: 15px 0;
+    }
+
+    .how-to {
+      background: #fce4ec;
+      padding: 16px;
+      border-radius: 14px;
+      margin-top: 25px;
+      font-size: 14px;
+      color: #880e4f;
+    }
+
+    .how-to h3 {
+      margin-top: 0;
+      color: #ad1457;
+    }
+
+    .model-note {
+      text-align: center;
+      font-size: 13px;
+      color: #880e4f;
+      margin-top: 20px;
+      opacity: 0.8;
+    }
+
+    .status-label {
+      text-align: center;
+      font-size: 14px;
+      color: #ad1457;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💖 Review Mood Checker</h1>
+    <p class="subtitle">Feel the vibe of real customer reviews!</p>
+
+    <label for="api-token">✨ Your Hugging Face Token (optional but sweet):</label>
+    <input type="text" id="api-token" placeholder="Paste your token here...">
+
+    <div class="status-label" id="status">Loading model...</div>
+
+    <button id="analyze-btn">🌸 Check a Random Review's Mood</button>
+
+    <div class="loading">Analyzing with love... <i class="fas fa-heart"></i></div>
+
+    <div class="review-box" id="review-text">A lovely review will appear here...</div>
+
+    <div class="sentiment-result" id="sentiment-result"></div>
+
+    <div class="error-message" id="error-message"></div>
+
+    <div class="how-to">
+      <h3>How to get your free Hugging Face token:</h3>
+      <ol>
+        <li>Go to <a href="https://huggingface.co" target="_blank">huggingface.co</a> and sign up</li>
+        <li>Visit your profile → Settings → Access Tokens</li>
+        <li>Create a new token with <strong>Read</strong> role</li>
+        <li>Paste it above — it stays only in your browser! ❤️</li>
+      </ol>
+    </div>
+
+    <p class="model-note">
+      This app uses a lightweight AI model running right in your browser:<br>
+      <code>Xenova/distilbert-base-uncased-finetuned-sst-2-english</code>
+    </p>
+  </div>
+
+  <!-- Required libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
