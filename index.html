@@ -3,126 +3,87 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>💖 Review Mood Checker</title>
+  <title>Review Sentiment Analyzer</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: linear-gradient(135deg, #ffebf0, #ffd6e7);
-      margin: 0;
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
       padding: 20px;
-      min-height: 100vh;
-      position: relative;
-      overflow-x: hidden;
-    }
-    body::before {
-      content: "❤️ 💕 💖";
-      position: absolute;
-      top: 20%;
-      left: 5%;
-      font-size: 24px;
-      opacity: 0.15;
-      z-index: 0;
-      transform: rotate(-15deg);
-    }
-    body::after {
-      content: "💗 ❤️‍🔥 💓";
-      position: absolute;
-      bottom: 15%;
-      right: 8%;
-      font-size: 28px;
-      opacity: 0.12;
-      z-index: 0;
-      transform: rotate(12deg);
+      background: #fff9fb;
+      color: #333;
     }
     .container {
-      max-width: 700px;
-      margin: 20px auto;
-      padding: 25px;
       background: white;
-      border-radius: 20px;
-      box-shadow: 0 8px 24px rgba(255, 105, 180, 0.2);
-      position: relative;
-      z-index: 1;
-      border: 2px solid #ffccd5;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
     h1 {
+      color: #e91e63;
       text-align: center;
-      color: #d81b60;
-      margin-bottom: 10px;
-      font-size: 2.2rem;
     }
     label {
       display: block;
       margin: 16px 0 6px;
-      color: #c2185b;
-      font-weight: 600;
+      font-weight: bold;
     }
-    input[type="url"] {
+    input[type="text"] {
       width: 100%;
       padding: 10px;
-      border: 2px solid #ffb6c1;
-      border-radius: 10px;
+      border: 1px solid #fbb4c4;
+      border-radius: 6px;
       box-sizing: border-box;
-      margin-bottom: 10px;
     }
     button {
-      background: linear-gradient(to right, #ec407a, #d81b60);
+      background: #ec407a;
       color: white;
       border: none;
-      padding: 14px;
-      font-size: 18px;
-      border-radius: 14px;
+      padding: 12px 24px;
+      border-radius: 6px;
       cursor: pointer;
-      margin: 12px 0;
+      margin: 16px 0;
       width: 100%;
-      font-weight: 600;
     }
-    .review-box {
-      background: #fff0f5;
-      padding: 20px;
-      border-radius: 16px;
+    #review-text, #sentiment-result {
       margin: 20px 0;
-      font-style: italic;
-      color: #880e4f;
-      border-left: 4px solid #f48fb1;
-      word-break: break-word;
-      display: none;
-    }
-    .sentiment-result {
-      text-align: center;
-      font-size: 22px;
-      margin: 20px 0;
-      padding: 16px;
-      border-radius: 14px;
-      display: none;
+      padding: 15px;
       background: #fdf2f8;
-      border: 2px dashed #f8bbd0;
-    }
-    .status {
-      padding: 10px;
       border-radius: 8px;
-      margin-top: 12px;
-      text-align: center;
       display: none;
     }
-    .success { background: #e8f5e9; color: #2e7d32; }
-    .error { background: #ffebee; color: #c62828; }
+    #error-message {
+      color: #d32f2f;
+      background: #ffebee;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 16px;
+      display: none;
+    }
+    .loading {
+      text-align: center;
+      color: #ec407a;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>💖 Review Mood Checker</h1>
+    <h1>💖 Review Sentiment Analyzer</h1>
+    <p>Analyze the sentiment of product reviews using AI</p>
 
-    <label for="gas-url">Google Apps Script Logger URL (ends with /exec):</label>
-    <input type="url" id="gas-url" placeholder="https://script.google.com/macros/s/.../exec">
-    <button id="save-gas">Save Logger URL</button>
+    <label for="api-token">Hugging Face API Token (optional):</label>
+    <input type="text" id="api-token" placeholder="Paste your token here...">
 
-    <button id="analyze-btn">🌸 Check a Random Review's Mood</button>
+    <button id="analyze-btn">Analyze Random Review</button>
+    <div class="loading" id="loading">Loading AI model...</div>
 
-    <div class="review-box" id="review-text"></div>
-    <div class="sentiment-result" id="sentiment-result"></div>
-    <div class="status" id="status"></div>
+    <div id="review-text"></div>
+    <div id="sentiment-result"></div>
+    <div id="error-message"></div>
+
+    <p><small>Your token is stored only in your browser.</small></p>
   </div>
 
   <!-- Libraries -->
